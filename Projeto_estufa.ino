@@ -1,0 +1,77 @@
+#include <math.h>
+
+void setup() {
+  pinMode(2, OUTPUT); // trig
+  pinMode(3, INPUT);  // echo
+  pinMode(7, OUTPUT); // bomba 
+  pinMode(8, OUTPUT); // ventilador 
+  pinMode(4, OUTPUT); // LED
+
+  Serial.begin(9600);
+}
+
+void loop() {
+
+  //SENSOR ULTRASSÔNICO
+  digitalWrite(2, LOW);
+  delayMicroseconds(2);
+
+  digitalWrite(2, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(2, LOW);
+
+  long dur = pulseIn(3, HIGH);
+  float dis = (dur / 2.0) / 29.1;
+
+  Serial.print(dis);
+  Serial.println(" cm");
+
+  //BOMBA (pino 7)
+  if (dis < 10) {
+    digitalWrite(7, LOW);
+    delay(1500);
+  } else {
+    digitalWrite(7, HIGH);
+  }
+
+  // LDR
+  int luz = analogRead(A5);
+  luz = map(luz, 0, 1023, 0, 100);
+
+  Serial.print(luz);
+  Serial.println("% de luz");
+
+  //  NTC
+  int leitura = analogRead(A0);
+
+  float Rfixo = 10000.0;
+  float B = 3950.0;
+  float T0 = 298.15;
+  float R0 = 10000.0;
+
+  float R = Rfixo * (1023.0 / leitura - 1.0);
+
+  float tempK = 1.0 / ((1.0 / T0) + (1.0 / B) * log(R / R0));
+  float tempC = tempK - 273.15;
+
+  Serial.print(tempC);
+  Serial.println(" °C");
+
+  Serial.println("//////////////////");
+
+  //  VENTILADOR ( 8)
+  if (tempC > 30) {
+    digitalWrite(8, LOW);
+  } else {
+    digitalWrite(8, HIGH);
+  }
+
+  // LED LUZ
+  if (luz < 60) {
+    digitalWrite(4, HIGH);
+  } else {
+    digitalWrite(4, LOW);
+  }
+
+  delay(1500);
+}
